@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeDojo - 编程道场</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <div v-if="currentView === 'login'" class="login-container">
+            <div class="login-box">
+                <h1 class="game-title"><i class="ri-code-s-slash-line"></i> CodeDojo</h1>
+                <p class="game-subtitle">编程道场 - 算法修仙之路</p>
+                <div class="login-form">
+                    <input v-model="username" @keyup.enter="login" placeholder="输入你的道号..." class="input-ninja">
+                    <button @click="login" class="btn-ninja btn-primary"><i class="ri-sword-line"></i> 进入道场</button>
+                </div>
+            </div>
+        </div>
+
+        <div v-else class="app-container">
+            <header class="game-header">
+                <div class="header-left">
+                    <span class="logo"><i class="ri-code-s-slash-line"></i> CodeDojo</span>
+                </div>
+                <div class="header-center">
+                    <div class="player-stats">
+                        <span class="stat"><i class="ri-user-star-line"></i> {{ user.level }}级</span>
+                        <span class="stat"><i class="ri-fire-line"></i> {{ user.exp }}/{{ expNeeded }} exp</span>
+                        <span class="stat gold"><i class="ri-coin-line"></i> {{ user.coins }}</span>
+                        <span class="stat"><i class="ri-lightbulb-line"></i> {{ user.hintsToday }}提示</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <span class="player-name">{{ user.username }}</span>
+                </div>
+            </header>
+
+            <nav class="game-nav">
+                <button @click="currentView = 'lobby'" :class="{active: currentView === 'lobby'}" class="nav-btn">
+                    <i class="ri-home-4-line"></i> 道场大厅
+                </button>
+                <button @click="currentView = 'arena'" :class="{active: currentView === 'arena'}" class="nav-btn">
+                    <i class="ri-roadster-line"></i> 算法竞技场
+                </button>
+                <button @click="currentView = 'dungeon'" :class="{active: currentView === 'dungeon'}" class="nav-btn">
+                    <i class="ri-dungeon-line"></i> 副本挑战
+                </button>
+                <button @click="currentView = 'shop'" :class="{active: currentView === 'shop'}" class="nav-btn">
+                    <i class="ri-store-2-line"></i> 装备商城
+                </button>
+            </nav>
+
+            <main class="game-main">
+                <div v-if="currentView === 'lobby'" class="lobby">
+                    <div class="welcome-banner">
+                        <h2>欢迎回来，{{ user.username }}道友！</h2>
+                        <p>继续你的算法修仙之路</p>
+                    </div>
+
+                    <div class="quick-actions">
+                        <div @click="currentView = 'arena'" class="action-card race">
+                            <i class="ri-roadster-line"></i>
+                            <h3>算法赛车</h3>
+                            <p>观看算法竞速比赛</p>
+                        </div>
+                        <div @click="currentView = 'dungeon'" class="action-card dungeon">
+                            <i class="ri-dungeon-line"></i>
+                            <h3>挑战副本</h3>
+                            <p>攻克编程难关</p>
+                        </div>
+                        <div @click="currentView = 'shop'" class="action-card shop">
+                            <i class="ri-store-2-line"></i>
+                            <h3>装备商城</h3>
+                            <p>强化你的实力</p>
+                        </div>
+                    </div>
+
+                    <div class="dungeons-preview">
+                        <h3><i class="ri-map-line"></i> 副本地图</h3>
+                        <div class="dungeon-list">
+                            <div class="dungeon-item free">
+                                <div class="dungeon-icon">🌲</div>
+                                <div class="dungeon-info">
+                                    <h4>新手村 - 基础语法森林</h4>
+                                    <p>5个关卡 | 免费开放</p>
+                                </div>
+                                <span class="badge free">免费</span>
+                            </div>
+                            <div class="dungeon-item locked">
+                                <div class="dungeon-icon">🔥</div>
+                                <div class="dungeon-info">
+                                    <h4>火焰山 - 算法熔炉</h4>
+                                    <p>8个关卡 | 需要解锁</p>
+                                </div>
+                                <span class="badge premium">¥6.6</span>
+                            </div>
+                            <div class="dungeon-item locked">
+                                <div class="dungeon-icon">⚔️</div>
+                                <div class="dungeon-info">
+                                    <h4>深渊 - 数据结构深渊</h4>
+                                    <p>10个关卡 | 需要解锁</p>
+                                </div>
+                                <span class="badge premium">¥8.8</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'arena'" class="arena">
+                    <div class="arena-header">
+                        <h2><i class="ri-roadster-line"></i> 算法赛车竞技场</h2>
+                    </div>
+
+                    <div class="race-setup">
+                        <div class="racer-select">
+                            <h3>选择你的赛车（算法）</h3>
+                            <div class="racer-options">
+                                <div @click="selectedAlgo1 = 'bubble'" :class="{selected: selectedAlgo1 === 'bubble'}" class="racer-option">
+                                    <span class="racer-icon">🚗</span>
+                                    <div class="racer-info">
+                                        <h4>新手车 - 冒泡排序</h4>
+                                        <p>稳定但缓慢</p>
+                                        <div class="stat-bar"><span class="fill" style="width:30%"></span></div>
+                                        <small>速度: 30%</small>
+                                    </div>
+                                </div>
+                                <div @click="selectedAlgo1 = 'selection'" :class="{selected: selectedAlgo1 === 'selection'}" class="racer-option">
+                                    <span class="racer-icon">🏎️</span>
+                                    <div class="racer-info">
+                                        <h4>中级车 - 选择排序</h4>
+                                        <p>加速较快</p>
+                                        <div class="stat-bar"><span class="fill" style="width:50%"></span></div>
+                                        <small>速度: 50%</small>
+                                    </div>
+                                </div>
+                                <div @click="selectedAlgo1 = 'quick'" :class="{selected: selectedAlgo1 === 'quick'}" class="racer-option">
+                                    <span class="racer-icon">🚀</span>
+                                    <div class="racer-info">
+                                        <h4>高级车 - 快速排序</h4>
+                                        <p>极速飞驰</p>
+                                        <div class="stat-bar"><span class="fill" style="width:90%"></span></div>
+                                        <small>速度: 90%</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="track-select">
+                            <h3>选择赛道（数据规模）</h3>
+                            <div class="track-options">
+                                <div @click="arraySize = 8" :class="{selected: arraySize === 8}" class="track-option">
+                                    <span>🏁</span>
+                                    <div>
+                                        <h4>短赛道</h4>
+                                        <p>8个元素</p>
+                                    </div>
+                                </div>
+                                <div @click="arraySize = 15" :class="{selected: arraySize === 15}" class="track-option">
+                                    <span>🏞️</span>
+                                    <div>
+                                        <h4>中赛道</h4>
+                                        <p>15个元素</p>
+                                    </div>
+                                </div>
+                                <div @click="arraySize = 25" :class="{selected: arraySize === 25}" class="track-option">
+                                    <span>🏔️</span>
+                                    <div>
+                                        <h4>长赛道</h4>
+                                        <p>25个元素</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="vs-section">
+                            <div class="racer-left">
+                                <span class="racer-big">{{ getRacerEmoji(selectedAlgo1) }}</span>
+                                <h4>{{ getRacerName(selectedAlgo1) }}</h4>
+                            </div>
+                            <div class="vs-text">VS</div>
+                            <div class="racer-right">
+                                <span class="racer-big">{{ getRacerEmoji(selectedAlgo2) }}</span>
+                                <h4>{{ getRacerName(selectedAlgo2) }}</h4>
+                            </div>
+                        </div>
+
+                        <button @click="startRace" :disabled="racing" class="btn-ninja btn-race">
+                            <i class="ri-play-line"></i> {{ racing ? '比赛中...' : '开始比赛' }}
+                        </button>
+                    </div>
+
+                    <div v-if="raceResult" class="race-result">
+                        <div class="winner-banner" :class="{win: raceResult.winner === selectedAlgo1}">
+                            <i class="ri-trophy-line"></i>
+                            <h3>{{ raceResult.winner === selectedAlgo1 ? '你赢了！' : '你输了！' }}</h3>
+                        </div>
+                        <div class="race-stats">
+                            <div class="stat-card">
+                                <h4>{{ getRacerName(selectedAlgo1) }}</h4>
+                                <p class="time">{{ raceResult.time1?.toFixed(2) }}ms</p>
+                                <p>{{ raceResult.steps1 }} 步</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>{{ getRacerName(selectedAlgo2) }}</h4>
+                                <p class="time">{{ raceResult.time2?.toFixed(2) }}ms</p>
+                                <p>{{ raceResult.steps2 }} 步</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="steps.length > 0" class="visualization">
+                        <div class="viz-header">
+                            <h3><i class="ri-eye-line"></i> 算法可视化</h3>
+                            <div class="viz-controls">
+                                <button @click="prevStep" :disabled="currentStep <= 0"><i class="ri-skip-back-line"></i></button>
+                                <button @click="togglePlay" class="play-btn"><i :class="playing ? 'ri-pause-line' : 'ri-play-line'"></i></button>
+                                <button @click="nextStep" :disabled="currentStep >= steps.length - 1"><i class="ri-skip-forward-line"></i></button>
+                                <span>{{ currentStep + 1 }} / {{ steps.length }}</span>
+                            </div>
+                        </div>
+                        <div class="viz-container">
+                            <div class="bars-container">
+                                <div v-for="(val, idx) in steps[currentStep]?.data" :key="idx"
+                                     class="bar" :style="{height: (val / maxVal * 100) + '%'}"
+                                     :class="getBarClass(idx)">
+                                    <span class="bar-label">{{ val }}</span>
+                                </div>
+                            </div>
+                            <div class="step-desc">
+                                <p>{{ steps[currentStep]?.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'dungeon'" class="dungeon-view">
+                    <div class="dungeon-header">
+                        <h2><i class="ri-dungeon-line"></i> 副本挑战</h2>
+                    </div>
+
+                    <div class="level-tabs">
+                        <button @click="selectedType = 'basic'" :class="{active: selectedType === 'basic'}" class="tab-btn">
+                            🌲 新手村（免费）
+                        </button>
+                        <button @click="selectedType = 'sorting'" :class="{active: selectedType === 'sorting'}" class="tab-btn premium-tab">
+                            🔥 排序火山 <span class="lock">🔒</span>
+                        </button>
+                        <button @click="selectedType = 'search'" :class="{active: selectedType === 'search'}" class="tab-btn premium-tab">
+                            ⚔️ 查找地牢 <span class="lock">🔒</span>
+                        </button>
+                    </div>
+
+                    <div class="levels-grid">
+                        <div v-for="level in filteredLevels" :key="level.id" @click="selectLevel(level)"
+                             :class="{locked: !level.isFree && !hasUnlocked(level.type)}"
+                             class="level-card">
+                            <div class="level-header">
+                                <span class="level-num">{{ level.id }}</span>
+                                <span v-if="level.isFree" class="badge free">免费</span>
+                                <span v-else class="badge premium">付费</span>
+                            </div>
+                            <h4>{{ level.name }}</h4>
+                            <p>{{ level.description }}</p>
+                            <div class="level-rewards">
+                                <span><i class="ri-fire-line"></i> +{{ level.expReward }} exp</span>
+                                <span><i class="ri-coin-line"></i> +{{ level.coinReward }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="selectedLevel" class="level-modal">
+                        <div class="modal-content">
+                            <button @click="selectedLevel = null" class="close-btn"><i class="ri-close-line"></i></button>
+                            <h2>{{ selectedLevel.name }}</h2>
+                            <p class="level-desc">{{ selectedLevel.description }}</p>
+                            <div class="code-area">
+                                <h3>代码区域</h3>
+                                <textarea v-model="userCode" class="code-editor">{{ selectedLevel.starterCode }}</textarea>
+                            </div>
+                            <div class="level-actions">
+                                <button @click="runLevel" class="btn-ninja btn-run">
+                                    <i class="ri-play-line"></i> 运行代码
+                                </button>
+                                <button @click="useHint" :disabled="user.hintsToday <= 0" class="btn-ninja btn-hint">
+                                    <i class="ri-lightbulb-line"></i> 提示 ({{ user.hintsToday }})
+                                </button>
+                            </div>
+                            <div v-if="runResult" class="run-result" :class="{success: runResult.success, error: !runResult.success}">
+                                <pre>{{ runResult.message }}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentView === 'shop'" class="shop-view">
+                    <div class="shop-header">
+                        <h2><i class="ri-store-2-line"></i> 装备商城</h2>
+                        <p class="player-coins"><i class="ri-coin-line"></i> {{ user.coins }} 金币</p>
+                    </div>
+
+                    <div class="shop-tabs">
+                        <button @click="shopCategory = 'weapons'" :class="{active: shopCategory === 'weapons'}" class="tab-btn">
+                            ⚔️ 武器
+                        </button>
+                        <button @click="shopCategory = 'armor'" :class="{active: shopCategory === 'armor'}" class="tab-btn">
+                            🛡️ 防具
+                        </button>
+                        <button @click="shopCategory = 'dungeons'" :class="{active: shopCategory === 'dungeons'}" class="tab-btn">
+                            🗺️ 副本
+                        </button>
+                    </div>
+
+                    <div v-if="shopCategory === 'weapons'" class="shop-grid">
+                        <div v-for="item in weapons" :key="item.id" class="shop-card" :class="item.rarity">
+                            <div class="item-icon">{{ getWeaponIcon(item.id) }}</div>
+                            <h4>{{ item.name }}</h4>
+                            <p>{{ item.effect }} +{{ item.effectValue }}%</p>
+                            <div class="item-price">
+                                <span v-if="item.isFree" class="free-tag">已拥有</span>
+                                <span v-else><i class="ri-coin-line"></i> {{ item.price }}</span>
+                            </div>
+                            <button v-if="!item.isFree" @click="buyItem(item)" class="btn-buy">
+                                <i class="ri-shopping-cart-line"></i> 购买
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="shopCategory === 'armor'" class="shop-grid">
+                        <div v-for="item in armors" :key="item.id" class="shop-card" :class="item.rarity">
+                            <div class="item-icon">{{ getArmorIcon(item.id) }}</div>
+                            <h4>{{ item.name }}</h4>
+                            <p>每日提示 {{ item.effectValue }}次</p>
+                            <div class="item-price">
+                                <span v-if="item.isFree" class="free-tag">已拥有</span>
+                                <span v-else><i class="ri-coin-line"></i> {{ item.price }}</span>
+                            </div>
+                            <button v-if="!item.isFree" @click="buyItem(item)" class="btn-buy">
+                                <i class="ri-shopping-cart-line"></i> 购买
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-if="shopCategory === 'dungeons'" class="dungeon-shop">
+                        <div class="dungeon-pack">
+                            <span class="pack-icon">🔥</span>
+                            <h3>排序火山</h3>
+                            <p>8个排序算法关卡</p>
+                            <div class="pack-price">¥6.6</div>
+                            <button @click="showPayment('sorting', 6.6)" class="btn-ninja btn-pay">
+                                <i class="ri-wechat-pay-line"></i> 解锁
+                            </button>
+                        </div>
+                        <div class="dungeon-pack">
+                            <span class="pack-icon">⚔️</span>
+                            <h3>查找地牢</h3>
+                            <p>8个搜索算法关卡</p>
+                            <div class="pack-price">¥8.8</div>
+                            <button @click="showPayment('search', 8.8)" class="btn-ninja btn-pay">
+                                <i class="ri-wechat-pay-line"></i> 解锁
+                            </button>
+                        </div>
+                        <div class="dungeon-pack bundle">
+                            <span class="ribbon">超值</span>
+                            <span class="pack-icon">🎁</span>
+                            <h3>副本大礼包</h3>
+                            <p>解锁所有副本 + 限定称号</p>
+                            <div class="pack-price"><s>¥15.4</s> ¥15</div>
+                            <button @click="showPayment('all', 15)" class="btn-ninja btn-pay">
+                                <i class="ri-wechat-pay-line"></i> 解锁
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <div v-if="showPayModal" class="payment-modal">
+            <div class="modal-content pay-modal">
+                <button @click="showPayModal = false" class="close-btn"><i class="ri-close-line"></i></button>
+                <h2><i class="ri-wechat-pay-line"></i> 微信支付</h2>
+                <div class="qr-area">
+                    <img src="/images/qr.png" alt="微信收款码" class="qr-image">
+                    <p class="price">¥{{ payAmount }}</p>
+                </div>
+                <div class="payment-form">
+                    <input v-model="transactionId" placeholder="输入微信支付订单号后6位" class="input-ninja">
+                    <button @click="submitPayment" class="btn-ninja btn-pay">
+                        <i class="ri-check-line"></i> 我已支付
+                    </button>
+                </div>
+                <p class="pay-note">支付后，管理员将尽快审核并解锁内容</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
