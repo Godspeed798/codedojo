@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS app_user (
     coins INT DEFAULT 100,
     equipment VARCHAR(500),
     hints_today INT DEFAULT 3,
-    achievements VARCHAR(500)
+    achievements VARCHAR(500),
+    unlocked_content TEXT
 );
 
 CREATE TABLE IF NOT EXISTS level (
@@ -53,7 +54,3 @@ CREATE TABLE IF NOT EXISTS payment (
     create_time TIMESTAMP,
     verified BOOLEAN DEFAULT FALSE
 );
-
-ALTER TABLE app_user ADD COLUMN unlocked_content TEXT;
-
-TRUNCATE TABLE payment;
