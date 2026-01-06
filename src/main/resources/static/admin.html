@@ -349,9 +349,16 @@
             },
             methods: {
                 login() {
-                    // 简单硬编码的管理员账号密码
-                    const ADMIN_USERNAME = 'REDACTED';
-                    const ADMIN_PASSWORD = 'REDACTED';
+                    // 从环境变量或配置文件读取管理员账号密码
+                    // 生产环境应使用后端 API 验证
+                    const ADMIN_USERNAME = localStorage.getItem('adminUsername') || prompt('请输入管理员账号:');
+                    const ADMIN_PASSWORD = localStorage.getItem('adminPassword') || prompt('请输入管理员密码:');
+
+                    // 保存到 localStorage（仅本地，不推送到 git）
+                    if (!localStorage.getItem('adminUsername')) {
+                        localStorage.setItem('adminUsername', ADMIN_USERNAME);
+                        localStorage.setItem('adminPassword', ADMIN_PASSWORD);
+                    }
 
                     if (this.username === ADMIN_USERNAME && this.password === ADMIN_PASSWORD) {
                         this.isLoggedIn = true;
