@@ -1,5 +1,6 @@
 package com.example.coding.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -17,4 +18,21 @@ public class Level {
     private Integer timeLimit;
     private Integer expReward;
     private Integer coinReward;
+
+    public Boolean getFree() {
+        return isFree;
+    }
+
+    public void setFree(Boolean free) {
+        this.isFree = free;
+    }
+
+    @JsonProperty("free")
+    public Boolean getJsonFree() {
+        return isFree;
+    }
+
+    public void setJsonFree(Boolean free) {
+        this.isFree = free;
+    }
 }

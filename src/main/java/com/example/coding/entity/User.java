@@ -14,4 +14,5 @@ public class User {
     private String equipment;
     private Integer hintsToday;
     private String achievements;
+    private String unlockedContent;  // JSON格式存储已解锁内容：["sorting", "search", "all"]
 }

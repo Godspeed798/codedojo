@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>微信收款码生成器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .step {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #07c160;
+        }
+        .step h3 { margin-top: 0; }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .qr-preview {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+        .qr-preview img {
+            max-width: 300px;
+            border: 5px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 微信收款码设置指南</h1>
+
+        <div class="warning">
+            <strong>⚠️ 重要提示：</strong><br>
+            个人微信收款码无法预设固定金额，用户扫码后需要手动输入金额。<br>
+            如果需要自动设置金额，需要申请微信支付商户号（需要企业资质）。
+        </div>
+
+        <div class="step">
+            <h3>步骤1：获取微信收款码</h3>
+            <ol>
+                <li>打开微信 → <strong>我</strong> → <strong>服务</strong> → <strong>收付款</strong></li>
+                <li>点击<strong>收款码</strong></li>
+                <li>点击右上角<strong>…</strong> → <strong>保存图片</strong></li>
+                <li>将保存的收款码图片重命名为 <code>qr-code.png</code></li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h3>步骤2：放置收款码图片</h3>
+            <p>将 <code>qr-code.png</code> 文件放到以下位置：</p>
+            <code>D:\Code\ClaudeCode\Coding\src\main\resources\static\images\qr-code.png</code>
+        </div>
+
+        <div class="step">
+            <h3>步骤3：重启应用</h3>
+            <p>重启 Spring Boot 应用，收款码就会显示在支付页面。</p>
+        </div>
+
+        <div class="step">
+            <h3>💰 多个金额的解决方案</h3>
+            <p><strong>当前方案（个人收款）：</strong></p>
+            <ul>
+                <li>显示您的微信收款码</li>
+                <li>在支付说明中提示："请支付 <strong>¥19.9</strong>"</li>
+                <li>用户扫码后手动输入对应金额</li>
+            </ul>
+
+            <p><strong>验证方式：</strong></p>
+            <ul>
+                <li><strong>自动验证</strong>：集成微信支付商户（需要营业执照）</li>
+                <li><strong>手动验证</strong>：查看微信收款记录，手动点击后台的"确认支付"按钮</li>
+                <li><strong>半自动</strong>：让用户支付后截图发给您，您在后台验证</li>
+            </ul>
+        </div>
+
+        <div class="qr-preview">
+            <h3>📸 收款码示例位置</h3>
+            <p>支付页面将显示您的收款码：</p>
+            <div style="width: 220px; height: 220px; margin: 20px auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; color: white; text-align: center;">
+                <div>
+                    <div style="font-size: 50px;">📱</div>
+                    <div>您的收款码<br>将显示在这里</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>🎯 进阶方案：申请微信支付商户</h3>
+            <p>如果您想要：</p>
+            <ul>
+                <li>✅ 自动生成固定金额的订单二维码</li>
+                <li>✅ 自动验证支付状态</li>
+                <li>✅ 更专业的支付体验</li>
+            </ul>
+            <p>可以申请微信支付商户：</p>
+            <ul>
+                <li>网址：<a href="https://pay.weixin.qq.com/" target="_blank">https://pay.weixin.qq.com/</a></li>
+                <li>费率：0.6%（每笔交易）</li>
+                <li>要求：需要有营业执照（个体户或公司）</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>📞 临时解决方案（推荐用于测试）</h3>
+            <p>在支付说明中添加：</p>
+            <code>支付完成后，请截图发送给客服验证</code>
+            <p>然后在后台手动验证用户的支付。</p>
+        </div>
+    </div>
+</body>
+</html>

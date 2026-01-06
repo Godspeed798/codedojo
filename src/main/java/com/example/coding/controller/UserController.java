@@ -5,6 +5,8 @@ import com.example.coding.entity.User;
 import com.example.coding.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/user")
 @CrossOrigin
@@ -39,5 +41,14 @@ public class UserController {
     @GetMapping("/{userId}/access/{levelId}")
     public Result<Boolean> checkAccess(@PathVariable String userId, @PathVariable Integer levelId) {
         return Result.ok(userService.hasAccess(userId, levelId));
+    }
+
+    /**
+     * 获取用户已解锁的内容列表
+     * 返回格式：["sorting", "search", "all"]
+     */
+    @GetMapping("/{userId}/unlocked")
+    public Result<List<String>> getUnlockedContents(@PathVariable String userId) {
+        return Result.ok(userService.getUnlockedContents(userId));
     }
 }

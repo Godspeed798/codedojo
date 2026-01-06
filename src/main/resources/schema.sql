@@ -53,3 +53,7 @@ CREATE TABLE IF NOT EXISTS payment (
     create_time TIMESTAMP,
     verified BOOLEAN DEFAULT FALSE
 );
+
+ALTER TABLE app_user ADD COLUMN unlocked_content TEXT;
+
+TRUNCATE TABLE payment;

@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeDojo - 编程道场</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.0/vue.global.prod.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <link href="https://fonts.loli.net/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <div id="app">
+    <div id="app" v-cloak>
         <div v-if="currentView === 'login'" class="login-container">
             <div class="login-box">
                 <h1 class="game-title"><i class="ri-code-s-slash-line"></i> CodeDojo</h1>
@@ -38,6 +39,9 @@
                 </div>
                 <div class="header-right">
                     <span class="player-name">{{ user.username }}</span>
+                    <a href="/admin.html" target="_blank" class="admin-link" title="管理后台">
+                        <i class="ri-admin-line"></i>
+                    </a>
                 </div>
             </header>
 
@@ -49,7 +53,7 @@
                     <i class="ri-roadster-line"></i> 算法竞技场
                 </button>
                 <button @click="currentView = 'dungeon'" :class="{active: currentView === 'dungeon'}" class="nav-btn">
-                    <i class="ri-dungeon-line"></i> 副本挑战
+                    <i class="ri-map-2-line"></i> 副本挑战
                 </button>
                 <button @click="currentView = 'shop'" :class="{active: currentView === 'shop'}" class="nav-btn">
                     <i class="ri-store-2-line"></i> 装备商城
@@ -70,7 +74,7 @@
                             <p>观看算法竞速比赛</p>
                         </div>
                         <div @click="currentView = 'dungeon'" class="action-card dungeon">
-                            <i class="ri-dungeon-line"></i>
+                            <i class="ri-map-2-line"></i>
                             <h3>挑战副本</h3>
                             <p>攻克编程难关</p>
                         </div>
@@ -82,7 +86,7 @@
                     </div>
 
                     <div class="dungeons-preview">
-                        <h3><i class="ri-map-line"></i> 副本地图</h3>
+                        <h3><i class="ri-map-2-line"></i> 副本地图</h3>
                         <div class="dungeon-list">
                             <div class="dungeon-item free">
                                 <div class="dungeon-icon">🌲</div>
@@ -96,17 +100,17 @@
                                 <div class="dungeon-icon">🔥</div>
                                 <div class="dungeon-info">
                                     <h4>火焰山 - 算法熔炉</h4>
-                                    <p>8个关卡 | 需要解锁</p>
+                                    <p>8个排序算法关卡 | 需要解锁</p>
                                 </div>
-                                <span class="badge premium">¥6.6</span>
+                                <span class="badge premium">¥19.9</span>
                             </div>
                             <div class="dungeon-item locked">
                                 <div class="dungeon-icon">⚔️</div>
                                 <div class="dungeon-info">
                                     <h4>深渊 - 数据结构深渊</h4>
-                                    <p>10个关卡 | 需要解锁</p>
+                                    <p>9个搜索算法关卡 | 需要解锁</p>
                                 </div>
-                                <span class="badge premium">¥8.8</span>
+                                <span class="badge premium">¥29.9</span>
                             </div>
                         </div>
                     </div>
@@ -249,20 +253,20 @@
                             🌲 新手村（免费）
                         </button>
                         <button @click="selectedType = 'sorting'" :class="{active: selectedType === 'sorting'}" class="tab-btn premium-tab">
-                            🔥 排序火山 <span class="lock">🔒</span>
+                            🔥 排序火山 <span v-if="!hasUnlocked('sorting')" class="lock">🔒</span><span v-else class="unlocked-icon">✅</span>
                         </button>
                         <button @click="selectedType = 'search'" :class="{active: selectedType === 'search'}" class="tab-btn premium-tab">
-                            ⚔️ 查找地牢 <span class="lock">🔒</span>
+                            ⚔️ 查找地牢 <span v-if="!hasUnlocked('search')" class="lock">🔒</span><span v-else class="unlocked-icon">✅</span>
                         </button>
                     </div>
 
                     <div class="levels-grid">
                         <div v-for="level in filteredLevels" :key="level.id" @click="selectLevel(level)"
-                             :class="{locked: !level.isFree && !hasUnlocked(level.type)}"
+                             :class="{locked: !(level.free || level.isFree || level.type === 'basic') && !(hasUnlocked(level.type) || hasUnlockedLevel(level.id))}"
                              class="level-card">
                             <div class="level-header">
                                 <span class="level-num">{{ level.id }}</span>
-                                <span v-if="level.isFree" class="badge free">免费</span>
+                                <span v-if="level.free || level.isFree || level.type === 'basic'" class="badge free">免费</span>
                                 <span v-else class="badge premium">付费</span>
                             </div>
                             <h4>{{ level.name }}</h4>
@@ -347,32 +351,44 @@
                     </div>
 
                     <div v-if="shopCategory === 'dungeons'" class="dungeon-shop">
-                        <div class="dungeon-pack">
+                        <div class="dungeon-pack" :class="{unlocked: hasUnlocked('sorting')}">
                             <span class="pack-icon">🔥</span>
                             <h3>排序火山</h3>
                             <p>8个排序算法关卡</p>
-                            <div class="pack-price">¥6.6</div>
-                            <button @click="showPayment('sorting', 6.6)" class="btn-ninja btn-pay">
+                            <div v-if="!hasUnlocked('sorting')" class="pack-price">¥19.9</div>
+                            <div v-else class="pack-price unlocked-status">✅ 已解锁</div>
+                            <button v-if="!hasUnlocked('sorting')" @click="showPayment('sorting', 19.9)" class="btn-ninja btn-pay">
                                 <i class="ri-wechat-pay-line"></i> 解锁
                             </button>
+                            <button v-else class="btn-ninja btn-unlocked" disabled>
+                                <i class="ri-check-line"></i> 已拥有
+                            </button>
                         </div>
-                        <div class="dungeon-pack">
+                        <div class="dungeon-pack" :class="{unlocked: hasUnlocked('search')}">
                             <span class="pack-icon">⚔️</span>
                             <h3>查找地牢</h3>
-                            <p>8个搜索算法关卡</p>
-                            <div class="pack-price">¥8.8</div>
-                            <button @click="showPayment('search', 8.8)" class="btn-ninja btn-pay">
+                            <p>9个搜索算法关卡</p>
+                            <div v-if="!hasUnlocked('search')" class="pack-price">¥29.9</div>
+                            <div v-else class="pack-price unlocked-status">✅ 已解锁</div>
+                            <button v-if="!hasUnlocked('search')" @click="showPayment('search', 29.9)" class="btn-ninja btn-pay">
                                 <i class="ri-wechat-pay-line"></i> 解锁
                             </button>
+                            <button v-else class="btn-ninja btn-unlocked" disabled>
+                                <i class="ri-check-line"></i> 已拥有
+                            </button>
                         </div>
-                        <div class="dungeon-pack bundle">
+                        <div class="dungeon-pack bundle" :class="{unlocked: hasUnlocked('all')}">
                             <span class="ribbon">超值</span>
                             <span class="pack-icon">🎁</span>
                             <h3>副本大礼包</h3>
                             <p>解锁所有副本 + 限定称号</p>
-                            <div class="pack-price"><s>¥15.4</s> ¥15</div>
-                            <button @click="showPayment('all', 15)" class="btn-ninja btn-pay">
+                            <div v-if="!hasUnlocked('all')" class="pack-price"><s>¥49.8</s> ¥39.9</div>
+                            <div v-else class="pack-price unlocked-status">✅ 已解锁</div>
+                            <button v-if="!hasUnlocked('all')" @click="showPayment('all', 39.9)" class="btn-ninja btn-pay">
                                 <i class="ri-wechat-pay-line"></i> 解锁
+                            </button>
+                            <button v-else class="btn-ninja btn-unlocked" disabled>
+                                <i class="ri-check-line"></i> 已拥有
                             </button>
                         </div>
                     </div>
@@ -382,23 +398,44 @@
 
         <div v-if="showPayModal" class="payment-modal">
             <div class="modal-content pay-modal">
-                <button @click="showPayModal = false" class="close-btn"><i class="ri-close-line"></i></button>
-                <h2><i class="ri-wechat-pay-line"></i> 微信支付</h2>
+                <button @click="cancelPayment" class="close-btn"><i class="ri-close-line"></i></button>
+                <h2><i class="ri-wechat-pay-line"></i> 扫码支付</h2>
+
                 <div class="qr-area">
-                    <img src="/images/qr.png" alt="微信收款码" class="qr-image">
-                    <p class="price">¥{{ payAmount }}</p>
+                    <div class="qr-placeholder">
+                        <!-- 您的微信收款码 -->
+                        <img src="/images/qr.png" alt="微信收款码" class="qr-image-real">
+                    </div>
+                    <p class="pay-status" v-if="paymentChecking">
+                        <i class="ri-loader-4-line ri-spin"></i> 等待支付...
+                    </p>
                 </div>
-                <div class="payment-form">
-                    <input v-model="transactionId" placeholder="输入微信支付订单号后6位" class="input-ninja">
-                    <button @click="submitPayment" class="btn-ninja btn-pay">
-                        <i class="ri-check-line"></i> 我已支付
+
+                <div class="payment-info">
+                    <p><strong>订单信息：</strong></p>
+                    <p v-if="payContent.startsWith('level_')">单个关卡解锁</p>
+                    <p v-else-if="payContent === 'sorting'">排序火山 - 8个排序算法关卡</p>
+                    <p v-else-if="payContent === 'search'">查找地牢 - 9个搜索算法关卡</p>
+                    <p v-else-if="payContent === 'all'">副本大礼包 - 全部副本解锁</p>
+                    <p class="amount">应付金额：<span class="price-highlight">¥{{ payAmount }}</span></p>
+                </div>
+
+                <div class="payment-tips">
+                    <p><i class="ri-information-line"></i> 支付说明</p>
+                    <ul>
+                        <li>请使用微信扫描上方二维码完成支付</li>
+                        <li><strong>请支付固定金额：¥{{ payAmount }}</strong></li>
+                        <li>支付完成后请截图，联系客服验证解锁</li>
+                        <li>客服微信：ysy1352895892（24小时内响应）</li>
+                    </ul>
+                    <button v-if="!paymentChecking" @click="confirmPayment()" class="btn-confirm">
+                        <i class="ri-check-double-line"></i> 我已完成支付
                     </button>
                 </div>
-                <p class="pay-note">支付后，管理员将尽快审核并解锁内容</p>
             </div>
         </div>
     </div>
 
-    <script src="/js/app.js"></script>
+    <script src="/js/app.js?v=4.2"></script>
 </body>
 </html>

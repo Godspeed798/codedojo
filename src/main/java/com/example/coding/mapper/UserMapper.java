@@ -15,12 +15,13 @@ public interface UserMapper {
     @Select("SELECT * FROM app_user WHERE username = #{username}")
     User findByUsername(String username);
 
-    @Insert("INSERT INTO app_user (id, username, level, exp, coins, equipment, hints_today, achievements) " +
-            "VALUES (#{id}, #{username}, #{level}, #{exp}, #{coins}, #{equipment}, #{hintsToday}, #{achievements})")
+    @Insert("INSERT INTO app_user (id, username, level, exp, coins, equipment, hints_today, achievements, unlocked_content) " +
+            "VALUES (#{id}, #{username}, #{level}, #{exp}, #{coins}, #{equipment}, #{hintsToday}, #{achievements}, #{unlockedContent})")
     void insert(User user);
 
     @Update("UPDATE app_user SET level = #{level}, exp = #{exp}, coins = #{coins}, " +
-            "equipment = #{equipment}, hints_today = #{hintsToday}, achievements = #{achievements} " +
+            "equipment = #{equipment}, hints_today = #{hintsToday}, achievements = #{achievements}, " +
+            "unlocked_content = #{unlockedContent} " +
             "WHERE id = #{id}")
     void update(User user);
 }

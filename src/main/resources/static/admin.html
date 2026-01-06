@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付管理后台 - CodeDojo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.0/vue.global.prod.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .login-form button {
+            width: 100%;
+            padding: 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-form button:hover {
+            background: #5568d3;
+        }
+
+        .error-msg {
+            color: #ef4444;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .admin-header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h1 {
+            margin: 0;
+        }
+
+        .btn-logout {
+            padding: 10px 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #07c160;
+        }
+
+        .payment-list {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .payment-item {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .payment-item:last-child {
+            border-bottom: none;
+        }
+
+        .payment-info h4 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .payment-info p {
+            color: #666;
+            font-size: 14px;
+            margin: 3px 0;
+        }
+
+        .payment-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #07c160;
+            margin: 0 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-verify {
+            background: #07c160;
+            color: white;
+        }
+
+        .btn-verify:hover {
+            background: #06ad56;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-paid {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .empty {
+            padding: 50px;
+            text-align: center;
+            color: #999;
+        }
+
+        .filter {
+            margin-bottom: 20px;
+        }
+
+        .filter button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .filter button.active {
+            background: #07c160;
+            color: white;
+            border-color: #07c160;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 登录界面 -->
+        <div v-if="!isLoggedIn" class="login-container">
+            <div class="login-box">
+                <h1><i class="ri-admin-line"></i> 管理后台登录</h1>
+                <div v-if="loginError" class="error-msg">{{ loginError }}</div>
+                <div class="login-form">
+                    <input v-model="username" type="text" placeholder="管理员账号" @keyup.enter="login">
+                    <input v-model="password" type="password" placeholder="密码" @keyup.enter="login">
+                    <button @click="login"><i class="ri-login-line"></i> 登录</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 管理界面 -->
+        <div v-else class="container">
+            <div class="admin-header">
+                <h1><i class="ri-admin-line"></i> 支付管理后台</h1>
+                <button @click="logout" class="btn-logout"><i class="ri-logout-line"></i> 退出登录</button>
+            </div>
+        <h1><i class="ri-admin-line"></i> 支付管理后台</h1>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>待验证订单</h3>
+                <div class="number">{{ pendingCount }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>已验证订单</h3>
+                <div class="number">{{ paidCount }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>总收入</h3>
+                <div class="number">¥{{ totalAmount }}</div>
+            </div>
+        </div>
+
+        <div class="filter">
+            <button @click="filter = 'all'" :class="{active: filter === 'all'}">全部</button>
+            <button @click="filter = 'pending'" :class="{active: filter === 'pending'}">待验证</button>
+            <button @click="filter = 'paid'" :class="{active: filter === 'paid'}">已验证</button>
+            <button @click="loadPayments()"><i class="ri-refresh-line"></i> 刷新</button>
+        </div>
+
+        <div class="payment-list">
+            <div v-if="filteredPayments.length === 0" class="empty">
+                <i class="ri-inbox-line" style="font-size: 48px;"></i>
+                <p>暂无订单</p>
+            </div>
+
+            <div v-for="payment in filteredPayments" :key="payment.id" class="payment-item">
+                <div class="payment-info">
+                    <h4>{{ getContentName(payment.content) }}</h4>
+                    <p><i class="ri-time-line"></i> {{ formatTime(payment.createTime) }}</p>
+                    <p v-if="payment.userName"><i class="ri-user-line"></i> 用户: {{ payment.userName }}</p>
+                    <p v-else><i class="ri-user-line"></i> 用户ID: {{ payment.userId.substring(0, 8) }}...</p>
+                    <p v-if="payment.transactionId"><i class="ri-qr-code-line"></i> 订单号: {{ payment.transactionId }}</p>
+                </div>
+                <div class="payment-amount">¥{{ (payment.amount / 100).toFixed(2) }}</div>
+                <span class="status" :class="payment.verified ? 'status-paid' : 'status-pending'">
+                    {{ payment.verified ? '已验证' : '待验证' }}
+                </span>
+                <button v-if="!payment.verified" @click="verifyPayment(payment.id)" class="btn btn-verify">
+                    <i class="ri-check-line"></i> 验证通过
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    isLoggedIn: false,
+                    username: '',
+                    password: '',
+                    loginError: '',
+                    payments: [],
+                    filter: 'all'
+                };
+            },
+            computed: {
+                filteredPayments() {
+                    if (this.filter === 'all') return this.payments;
+                    if (this.filter === 'pending') return this.payments.filter(p => !p.verified);
+                    if (this.filter === 'paid') return this.payments.filter(p => p.verified);
+                    return this.payments;
+                },
+                pendingCount() {
+                    return this.payments.filter(p => !p.verified).length;
+                },
+                paidCount() {
+                    return this.payments.filter(p => p.verified).length;
+                },
+                totalAmount() {
+                    return (this.payments.filter(p => p.verified)
+                        .reduce((sum, p) => sum + p.amount, 0) / 100).toFixed(2);
+                }
+            },
+            methods: {
+                login() {
+                    // 简单硬编码的管理员账号密码
+                    const ADMIN_USERNAME = 'REDACTED';
+                    const ADMIN_PASSWORD = 'REDACTED';
+
+                    if (this.username === ADMIN_USERNAME && this.password === ADMIN_PASSWORD) {
+                        this.isLoggedIn = true;
+                        this.loginError = '';
+                        // 保存登录状态到localStorage
+                        localStorage.setItem('adminLoggedIn', 'true');
+                        this.loadPayments();
+                    } else {
+                        this.loginError = '账号或密码错误！';
+                    }
+                },
+                logout() {
+                    this.isLoggedIn = false;
+                    this.username = '';
+                    this.password = '';
+                    localStorage.removeItem('adminLoggedIn');
+                },
+                checkLoginStatus() {
+                    const loggedIn = localStorage.getItem('adminLoggedIn');
+                    if (loggedIn === 'true') {
+                        this.isLoggedIn = true;
+                        this.loadPayments();
+                    }
+                },
+                async loadPayments() {
+                    try {
+                        const res = await axios.get('/api/payment/all');
+                        this.payments = res.data.data || [];
+                    } catch (e) {
+                        console.error(e);
+                        alert('加载订单失败');
+                    }
+                },
+                async verifyPayment(paymentId) {
+                    if (!confirm('确认验证此支付？')) return;
+
+                    try {
+                        await axios.post(`/api/payment/${paymentId}/simulate-success`);
+                        alert('验证成功！内容已解锁');
+                        this.loadPayments();
+                    } catch (e) {
+                        console.error(e);
+                        alert('验证失败');
+                    }
+                },
+                getContentName(content) {
+                    const names = {
+                        'sorting': '排序火山 - 8个排序算法关卡',
+                        'search': '查找地牢 - 9个搜索算法关卡',
+                        'all': '副本大礼包 - 全部副本解锁'
+                    };
+                    return names[content] || content;
+                },
+                formatTime(time) {
+                    if (!time) return '';
+                    return new Date(time).toLocaleString('zh-CN');
+                }
+            },
+            mounted() {
+                this.checkLoginStatus();
+                // 每30秒自动刷新
+                setInterval(() => {
+                    if (this.isLoggedIn) {
+                        this.loadPayments();
+                    }
+                }, 30000);
+            }
+        }).mount('body');
+    </script>
+</body>
+</html>
